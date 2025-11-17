@@ -126,7 +126,7 @@ setTimeout(showWord, 1000);
 // Handle autoplay with silent audio unlock
 function startMusic() {
   const audio = document.getElementById('bg-music');
-  audio.volume = 2;
+  audio.volume = 0;
 
   audio.play().then(() => {
     let v = 0;
@@ -158,6 +158,5 @@ document.getElementById('overlay').addEventListener('click', () => {
 
 </body>
 </html>
-
 
 
