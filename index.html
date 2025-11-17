@@ -14,7 +14,6 @@
     align-items: center;
     overflow: hidden;
     flex-direction: column;
-    cursor: pointer; /* hint user can tap to start audio */
   }
 
   #candle {
@@ -63,35 +62,47 @@
     50% { opacity: 0.7; transform: scale(1.05); }
   }
 
-  #tapMessage {
-    position: absolute;
-    top: 20px;
-    font-family: Arial, sans-serif;
-    color: #40E0D0;
-    font-size: 1em;
-    opacity: 0.7;
-    user-select: none;
+  /* Overlay for mobile autoplay prompt */
+  #overlay {
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:2em;
+    cursor:pointer;
+    z-index: 100;
   }
 </style>
 </head>
 <body>
 
-<div id="tapMessage">Tap anywhere to start the candle music</div>
-
 <img id="candle" src="https://media.tenor.com/t9lIrqinJnMAAAAM/%D1%81%D0%BF%D1%96%D0%B2%D1%87%D1%83%D0%B2%D0%B0%D1%8E-candle.gif" alt="Candle">
 
 <div id="text"></div>
 
+<!-- Background audio -->
 <audio id="bg-music" loop>
   <source src="https://github.com/pl8o/Mark_OF_CAIN/raw/refs/heads/main/Gymnope%CC%81die%20No.%201.mp4" type="audio/mp4">
 </audio>
 
+<!-- Silent audio for unlocking autoplay -->
+<audio id="silent-audio" src="data:audio/mp3;base64,//uQxAAAAAD..." autoplay></audio>
+
+<!-- Overlay for mobile autoplay fallback -->
+<div id="overlay">Tap to Start Music</div>
+
 <script>
 const words = ["A", "Candle", "For", "Jürgen"];
 const textContainer = document.getElementById('text');
+
 let wordIndex = 0;
 
-// Show each word letter by letter with flicker
 function showWord() {
   textContainer.innerHTML = '';
   const word = words[wordIndex];
@@ -106,51 +117,48 @@ function showWord() {
     textContainer.appendChild(span);
   }
 
-  let displayTime = 1500; // default time between words
-  if(word === "Jürgen") displayTime = 3000; // longer pause for the name
+  let displayTime = 1500;
+  if(word === "Jürgen") displayTime = 3000;
   wordIndex++;
   if(wordIndex >= words.length) {
     wordIndex = 0;
-    displayTime = 3000; // pause before restarting sequence
+    displayTime = 3000;
   }
   setTimeout(showWord, displayTime);
 }
 
-// Start the word sequence after 1s
 setTimeout(showWord, 1000);
 
-// Handle audio autoplay
-const audio = document.getElementById('bg-music');
-audio.volume = 0;
+// Handle autoplay with silent audio unlock
+function startMusic() {
+  const audio = document.getElementById('bg-music');
+  audio.volume = 0;
 
-// Function to fade in audio
-function fadeInAudio() {
-  let v = 0;
-  const fade = setInterval(() => {
-    if (v < 0.45) {
-      v += 0.01;
-      audio.volume = v;
-    } else {
-      clearInterval(fade);
-    }
-  }, 120);
+  audio.play().then(() => {
+    let v = 0;
+    const fade = setInterval(() => {
+      if (v < 0.45) {
+        v += 0.01;
+        audio.volume = v;
+      } else {
+        clearInterval(fade);
+      }
+    }, 120);
+  }).catch(() => {
+    console.log("Autoplay blocked; user interaction required.");
+  });
+
+  document.getElementById('overlay').style.display = 'none';
 }
 
-// Try to play immediately
+// Attempt autoplay after page load
 window.addEventListener('load', () => {
-  audio.play().then(() => {
-    fadeInAudio();
-    document.getElementById('tapMessage').style.display = 'none';
-  }).catch(() => {
-    // Autoplay blocked: wait for user interaction
-    const startAudio = () => {
-      audio.play();
-      fadeInAudio();
-      document.removeEventListener('click', startAudio);
-      document.getElementById('tapMessage').style.display = 'none';
-    };
-    document.addEventListener('click', startAudio);
-  });
+  startMusic();
+});
+
+// Fallback: tap anywhere overlay to start music
+document.getElementById('overlay').addEventListener('click', () => {
+  startMusic();
 });
 </script>
 
