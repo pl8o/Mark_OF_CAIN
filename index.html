@@ -91,12 +91,6 @@
   <source src="https://github.com/pl8o/Mark_OF_CAIN/raw/refs/heads/main/Gymnope%CC%81die%20No.%201.mp4" type="audio/mp4">
 </audio>
 
-<!-- Silent audio for unlocking autoplay 
-<audio id="bg-music" loop> src="data:audio/mp3;base64,//uQxAAAAAD..." autoplay></audio>-->
-
-<!-- Overlay for mobile autoplay fallback 
-<div id="overlay">Tap to Start Music</div>-->
-
 <script>
 const words = ["A", "Candle", "For", "Jürgen"];
 const textContainer = document.getElementById('text');
@@ -132,7 +126,7 @@ setTimeout(showWord, 1000);
 // Handle autoplay with silent audio unlock
 function startMusic() {
   const audio = document.getElementById('bg-music');
-  audio.volume = 0;
+  audio.volume = 2;
 
   audio.play().then(() => {
     let v = 0;
