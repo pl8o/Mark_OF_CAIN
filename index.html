@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A Candle For Jürgen</title>
+
 <style>
   body {
     margin: 0;
@@ -62,7 +63,7 @@
     50% { opacity: 0.7; transform: scale(1.05); }
   }
 
-  /* Overlay for mobile autoplay prompt */
+  /* Overlay for interaction unblock */
   #overlay {
     position: fixed;
     top:0;
@@ -74,27 +75,32 @@
     display:flex;
     justify-content:center;
     align-items:center;
+    text-align:center;
     font-size:2em;
+    padding:20px;
     cursor:pointer;
-    z-index: 100;
+    z-index:100;
   }
 </style>
 </head>
+
 <body>
+
+<!-- Appears only if autoplay is blocked -->
+<div id="overlay" style="display:none;">Tap to Enable Sound</div>
 
 <img id="candle" src="https://github.com/pl8o/Mark_OF_CAIN/blob/main/CANDLE.gif?raw=true" alt="Candle">
 
 <div id="text"></div>
 
 <!-- Background audio -->
-<audio id="bg-music" loop>
-  <source src="https://github.com/pl8o/Mark_OF_CAIN/raw/refs/heads/main/Gymnope%CC%81die%20No.%201.mp4" type="audio/mp4">
+<audio id="bg-music" loop preload="auto">
+  <source src="https://github.com/pl8o/Mark_OF_CAIN/raw/refs/heads/main/relax.mp3" type="audio/mpeg">
 </audio>
 
 <script>
 const words = ["A", "Candle", "For", "Jürgen"];
 const textContainer = document.getElementById('text');
-
 let wordIndex = 0;
 
 function showWord() {
@@ -111,48 +117,49 @@ function showWord() {
     textContainer.appendChild(span);
   }
 
-  let displayTime = 1500;
-  if(word === "Jürgen") displayTime = 3000;
-  wordIndex++;
-  if(wordIndex >= words.length) {
-    wordIndex = 0;
-    displayTime = 3000;
-  }
+  let displayTime = (word === "Jürgen") ? 3000 : 1500;
+  wordIndex = (wordIndex + 1) % words.length;
+
   setTimeout(showWord, displayTime);
 }
 
-setTimeout(showWord, 1000);
-
-// Handle autoplay with silent audio unlock
-function startMusic() {
-  const audio = document.getElementById('bg-music');
+// Fade-in audio
+function fadeAudio(audio) {
+  let volume = 0;
   audio.volume = 0;
-
-  audio.play().then(() => {
-    let v = 0;
-    const fade = setInterval(() => {
-      if (v < 0.45) {
-        v += 0.01;
-        audio.volume = v;
-      } else {
-        clearInterval(fade);
-      }
-    }, 120);
-  }).catch(() => {
-    console.log("Autoplay blocked; user interaction required.");
-  });
-
-  document.getElementById('overlay').style.display = 'none';
+  const fadeInterval = setInterval(() => {
+    volume += 0.015;
+    audio.volume = volume;
+    if (volume >= 0.45) {
+      clearInterval(fadeInterval);
+    }
+  }, 120);
 }
 
-// Attempt autoplay after page load
-window.addEventListener('load', () => {
-  startMusic();
+// Try autoplay
+function tryAutoplay() {
+  const audio = document.getElementById('bg-music');
+
+  audio.play().then(() => {
+    fadeAudio(audio);
+  }).catch(() => {
+    // Failed → show overlay
+    document.getElementById('overlay').style.display = 'flex';
+  });
+}
+
+// User taps overlay → guaranteed playback
+document.getElementById('overlay').addEventListener('click', () => {
+  const audio = document.getElementById('bg-music');
+  audio.play().then(() => {
+    fadeAudio(audio);
+    document.getElementById('overlay').style.display = 'none';
+  });
 });
 
-// Fallback: tap anywhere overlay to start music
-document.getElementById('overlay').addEventListener('click', () => {
-  startMusic();
+window.addEventListener('load', () => {
+  setTimeout(showWord, 800);
+  setTimeout(tryAutoplay, 400);
 });
 </script>
 
